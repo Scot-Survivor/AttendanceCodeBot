@@ -360,7 +360,7 @@ class MainCog(commands.Cog):
         """
         embed = nextcord.Embed(title="Help", description="List of all commands", color=0x00ff00)
         for command in self.bot.get_application_commands(rollout=False):
-            embed.add_field(name=command.name, value=command.description, inline=False)
+            embed.add_field(name=command.name, value=command.description[:100] + "...", inline=False)
         await interaction.response.send_message(embed=embed)
 
 
