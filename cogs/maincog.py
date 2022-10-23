@@ -134,7 +134,7 @@ class MainCog(commands.Cog):
         seminars = session.execute(stmt).scalars().all()
         embed = nextcord.Embed(title="Seminars", description=f"List of all seminars for {module.name}", color=0x00ff00)
         for seminar in seminars:
-            embed.add_field(name=seminar.name, value=seminar.id, inline=False)
+            embed.add_field(name=seminar.name, value="ID: " + seminar.id, inline=False)
         await interaction.response.send_message(embed=embed)
 
     @nextcord.slash_command(name="lectures")
@@ -162,7 +162,7 @@ class MainCog(commands.Cog):
         lectures = session.execute(stmt).scalars().all()
         embed = nextcord.Embed(title="Lectures", description=f"List of all lectures for {module.name}", color=0x00ff00)
         for lecture in lectures:
-            embed.add_field(name=lecture.name, value=lecture.id, inline=False)
+            embed.add_field(name=lecture.name, value="ID: " + lecture.id, inline=False)
         await interaction.response.send_message(embed=embed)
 
     @nextcord.slash_command(name="addmodule", default_member_permissions=nextcord.Permissions(administrator=True))
