@@ -153,14 +153,14 @@ class MainCog(commands.Cog):
         :return:
         """
         embed = nextcord.Embed(title="Help", description="List of all commands", color=0x00ff00)
-        embed.add_field(name="/codes", value="Lists all attendance codes", inline=False)
-        embed.add_field(name="/addcode", value="Adds a new attendance code", inline=False)
-        embed.add_field(name="/addmodule", value="Adds a new module", inline=False)
-        embed.add_field(name="/modules", value="Lists all courses", inline=False)
-        embed.add_field(name="/removemodule", value="Removes a module", inline=False)
-        embed.add_field(name="/removecode", value="Removes an attendance code", inline=False)
-        embed.add_field(name="/sourcecode", value="Sends the source code of the bot", inline=False)
-        embed.add_field(name="/help", value="Shows the help command", inline=False)
+        embed.add_field(name="/codes", value=self.codes.__doc__, inline=False)
+        embed.add_field(name="/addcode", value=self.addcode.__doc__, inline=False)
+        embed.add_field(name="/addmodule", value=self.addmodule.__doc__, inline=False)
+        embed.add_field(name="/modules", value=self.modules.__doc__, inline=False)
+        embed.add_field(name="/removemodule", value=self.removemodule.__doc__, inline=False)
+        embed.add_field(name="/removecode", value=self.removecode.__doc__, inline=False)
+        embed.add_field(name="/sourcecode", value=self.sourcecode.__doc__, inline=False)
+        embed.add_field(name="/help", value=self.help.__doc__, inline=False)
         await interaction.response.send_message(embed=embed)
 
 
