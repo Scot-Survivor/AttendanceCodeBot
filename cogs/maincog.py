@@ -17,10 +17,42 @@ class MainCog(commands.Cog):
         self.bot = bot
         self.engine = bot.engine
 
+    async def get_number_of_modules(self):
+        with Session(self.engine) as session:
+            return len(session.execute(select(Module)).all())
+
+    async def get_number_of_codes(self):
+        with Session(self.engine) as session:
+            return len(session.execute(select(Code)).all())
+
+    async def get_number_of_seminars(self):
+        with Session(self.engine) as session:
+            return len(session.execute(select(Seminar)).all())
+
+    async def get_number_of_lectures(self):
+        with Session(self.engine) as session:
+            return len(session.execute(select(Lecture)).all())
 
     @nextcord.slash_command(name="ping", guild_ids=[AttendanceBot.test_server])
     async def ping(self, interaction: nextcord.Interaction):
         await interaction.response.send_message("Pong!")
+
+    @nextcord.slash_command("stats")
+    async def stats(self, interaction: nextcord.Interaction):
+        """
+        Shows the stats of the bot
+        """
+        number_of_modules = await self.get_number_of_modules()
+        number_of_lectures = await self.get_number_of_lectures()
+        number_of_seminars = await self.get_number_of_seminars()
+        number_of_codes = await self.get_number_of_codes()
+        embed = nextcord.Embed(title="Stats", description="Shows the stats of the bot", color=nextcord.Color.green())
+        embed.add_field(name="Number of modules", value=number_of_modules, inline=False)
+        embed.add_field(name="Number of lectures", value=number_of_lectures, inline=False)
+        embed.add_field(name="Number of seminars", value=number_of_seminars, inline=False)
+        embed.add_field(name="Number of codes", value=number_of_codes, inline=False)
+        embed.set_footer(text=f"Requested by {interaction.user.name}#{interaction.user.discriminator}", icon_url=interaction.user.display_avatar.url)
+        await interaction.response.send_message(embed=embed)
 
     @nextcord.slash_command(name="sourcecode")
     async def sourcecode(self, interaction: nextcord.Interaction):
