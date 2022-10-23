@@ -16,6 +16,18 @@ class MainCog(commands.Cog):
     async def ping(self, interaction: nextcord.Interaction):
         await interaction.response.send_message("Pong!")
 
+    @nextcord.slash_command(name="sourcecode")
+    async def sourcecode(self, interaction: nextcord.Interaction):
+        """Sends the source code of the bot
+
+        Parameters
+        ----------
+        interaction : nextcord.Interaction
+            The interaction object
+        :return:
+        """
+        await interaction.response.send_message("https://github.com/Scot-Survivor/AttendanceCodeBot")
+
     @nextcord.slash_command(name="codes")
     async def codes(self, interaction: nextcord.Interaction):
         """
@@ -146,6 +158,8 @@ class MainCog(commands.Cog):
         embed.add_field(name="/addmodule", value="Adds a new module", inline=False)
         embed.add_field(name="/modules", value="Lists all courses", inline=False)
         embed.add_field(name="/removemodule", value="Removes a module", inline=False)
+        embed.add_field(name="/removecode", value="Removes an attendance code", inline=False)
+        embed.add_field(name="/sourcecode", value="Sends the source code of the bot", inline=False)
         embed.add_field(name="/help", value="Shows the help command", inline=False)
         await interaction.response.send_message(embed=embed)
 
