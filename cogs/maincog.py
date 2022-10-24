@@ -78,9 +78,7 @@ class MainCog(commands.Cog):
         :return:
         """
         NOW = datetime.datetime.utcnow()
-        HOUR_FORWARD = NOW + datetime.timedelta(hours=1)
-        HOUR_24_AGO = NOW - datetime.timedelta(hours=24)
-        stmt = select(Code).filter(Code.created_at.between(HOUR_24_AGO, HOUR_FORWARD))
+        stmt = select(Code).limit(20)
         session = Session(self.engine)
         codes = session.execute(stmt).scalars().all()
         embed = nextcord.Embed(title="Attendance Codes", description="List of all attendance codes", color=0x00ff00)
