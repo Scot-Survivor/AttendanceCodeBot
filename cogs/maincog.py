@@ -78,12 +78,20 @@ class MainCog(commands.Cog):
         :return:
         """
         NOW = datetime.datetime.utcnow()
-        stmt = select(Code).limit(20)
+        HOUR_FORWARD = NOW + datetime.timedelta(hours=1)
+        HOUR_24_AGO = NOW - datetime.timedelta(hours=24)
+        stmt = select(Code).filter(Code.created_at.between(HOUR_24_AGO, HOUR_FORWARD))
         session = Session(self.engine)
         codes = session.execute(stmt).scalars().all()
         embed = nextcord.Embed(title="Attendance Codes", description="List of all attendance codes", color=0x00ff00)
         for code in codes:
-            embed.add_field(name=code[0], value=code[1], inline=False)
+            module = session.execute(select(Module).where(Module.id == code.module_id)).scalars().first()
+            lecture_seminar = None
+            if code.lecture_id is not None:
+                lecture_seminar = session.execute(select(Lecture).where(Lecture.id == code.lecture_id)).scalars().first()
+            elif code.seminar_id is not None:
+                lecture_seminar = session.execute(select(Seminar).where(Seminar.id == code.seminar_id)).scalars().first()
+            embed.add_field(name=lecture_seminar.name, value=code.code, inline=False)
         await interaction.response.send_message(embed=embed)
 
     @nextcord.slash_command(name="addcode")
