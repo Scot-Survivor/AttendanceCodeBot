@@ -78,10 +78,10 @@ class MainCog(commands.Cog):
             The interaction object
         :return:
         """
-        NOW = datetime.datetime.utcnow()
-        HOUR_FORWARD = NOW + datetime.timedelta(hours=1)
-        HOUR_2_AGO = NOW - datetime.timedelta(hours=2)
-        stmt = select(Code).filter(Code.created_at.between(HOUR_2_AGO, HOUR_FORWARD))
+        now = datetime.datetime.utcnow()
+        hour_forward = now + datetime.timedelta(hours=1)
+        hour_2_ago = now - datetime.timedelta(hours=2)
+        stmt = select(Code).filter(Code.created_at.between(hour_2_ago, hour_forward))
         session = Session(self.engine)
         codes = session.execute(stmt).scalars().all()
         embed = nextcord.Embed(title="Attendance Codes", description="List of all attendance codes", color=0x00ff00)
