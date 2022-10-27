@@ -8,6 +8,7 @@ from models.Code import Code
 from models.Module import Module
 from models.Seminar import Seminar
 from models.Lecture import Lecture
+from ui_components.AddCode import AddCodeView
 
 
 class MainCog(commands.Cog):
@@ -96,7 +97,12 @@ class MainCog(commands.Cog):
 
     @nextcord.slash_command(name="addcode")
     async def addcode(self, interaction: nextcord.Interaction, code: str, module_code: str,
-                      seminar_name: str = None, lecture_name: str = None):
+                      is_seminar_lecture: int = nextcord.SlashOption(
+                          name="is_seminar_lecture",
+                          description="Is the code for a seminar or a lecture",
+                          required=True,
+                          choices={"seminar": 1, "lecture": 2}
+                      )):
         """
         Adds a new attendance code
 
@@ -116,9 +122,6 @@ class MainCog(commands.Cog):
             "Introduction to OOP Lecture 1"
         :return:
         """
-        if seminar_name is None and lecture_name is None:
-            await interaction.response.send_message("You must specify at either a seminar or lecture name")
-            return
 
         stmt = select(Module).where(Module.module_code == module_code)
         session = Session(self.engine)
@@ -128,24 +131,29 @@ class MainCog(commands.Cog):
             await interaction.response.send_message("Module does not exist")
             return
 
-        with Session(self.engine) as session:
-            stmt = select(Seminar).where(Seminar.name == seminar_name)
-            obj_seminar = session.execute(stmt).scalars().first()
-            stmt = select(Lecture).where(Lecture.name == lecture_name)
-            obj_lecture = session.execute(stmt).scalars().first()
-            if (seminar_name is not None and obj_seminar is None) or (lecture_name is not None and obj_lecture is None):
-                await interaction.response.send_message("Seminar or lecture does not exist. Please ask an admin to create it")
+        # Send a button to get Seminar/Lecture
+        view = None
+        if is_seminar_lecture == 1:
+            # Send a button to get Seminar
+            stmt = select(Seminar).where(Seminar.module_id == module.id)
+            seminars = session.execute(stmt).scalars().all()
+            if len(seminars) == 0:
+                await interaction.response.send_message("Module has no seminars")
                 return
+            view = AddCodeView(code, engine=self.engine, seminars=seminars, module=module)
+        elif is_seminar_lecture == 2:
+            # Send a button to get Lecture
+            stmt = select(Lecture).where(Lecture.module_id == module.id)
+            lectures = session.execute(stmt).scalars().all()
+            if len(lectures) == 0:
+                await interaction.response.send_message("Module has no lectures")
+                return
+            view = AddCodeView(code, engine=self.engine, lectures=lectures, module=module)
+        else:
+            await interaction.response.send_message("Invalid option")
+            return
 
-            if obj_seminar is not None:
-                obj_code = Code(code=code, module_id=module.id, seminar_id=obj_seminar.id)
-            elif obj_lecture is not None:
-                obj_code = Code(code=code, module_id=module.id, lecture_id=obj_lecture.id)
-
-            session.add(obj_code)
-            session.commit()
-
-        await interaction.response.send_message(f"Added code! {code} for {module.name}")
+        await interaction.response.send_message("Select a seminar/lecture", view=view)
 
     @nextcord.slash_command(name="seminars")
     async def seminars(self, interaction: nextcord.Interaction, module_code: str):
