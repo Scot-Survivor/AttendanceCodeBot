@@ -1,5 +1,6 @@
 import nextcord
 import datetime
+import asyncio
 from main import AttendanceBot
 from nextcord.ext import commands
 from sqlalchemy import select
@@ -17,6 +18,31 @@ class MainCog(commands.Cog):
     def __init__(self, bot: AttendanceBot):
         self.bot = bot
         self.engine = bot.engine
+        self.bot.loop.create_task(self.clear_codes_older_than_a_day())
+        self.bot.loop.create_task(self.clear_duplicate_codes())
+
+    async def clear_codes_older_than_a_day(self):
+        with Session(self.engine) as session:
+            stmt = select(Code).where(Code.created_at < datetime.datetime.now() - datetime.timedelta(days=1))
+            codes = session.execute(stmt).scalars().all()
+            for code in codes:
+                session.delete(code)
+            session.commit()
+
+        await asyncio.sleep(60 * 60 * 24)
+
+    async def clear_duplicate_codes(self):
+        with Session(self.engine) as session:
+            codes = session.execute(select(Code)).scalars().all()
+            for code in codes:
+                stmt = select(Code).where(Code.code == code.code)
+                codes = session.execute(stmt).scalars().all()
+                if len(codes) > 1:
+                    for i_code in codes[1:]:
+                        session.delete(i_code)
+            session.commit()
+
+        await asyncio.sleep(60 * 60 * 24)
 
     async def get_number_of_modules(self):
         with Session(self.engine) as session:
