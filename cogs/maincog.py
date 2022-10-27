@@ -1,14 +1,17 @@
-import nextcord
-import datetime
 import asyncio
-from main import AttendanceBot
+import datetime
+import typing
+
+import nextcord
 from nextcord.ext import commands
 from sqlalchemy import select
 from sqlalchemy.orm import Session
+
+from main import AttendanceBot
 from models.Code import Code
+from models.Lecture import Lecture
 from models.Module import Module
 from models.Seminar import Seminar
-from models.Lecture import Lecture
 from ui_components.AddCode import AddCodeView
 
 
@@ -20,6 +23,16 @@ class MainCog(commands.Cog):
         self.engine = bot.engine
         self.bot.loop.create_task(self.clear_codes_older_than_a_day())
         self.bot.loop.create_task(self.clear_duplicate_codes())
+
+    async def get_module(self, module_code: str, interaction: nextcord.Interaction) -> typing.Union[Module, None]:
+        stmt = select(Module).where(Module.module_code == module_code)
+        session = Session(self.engine)
+        module = session.execute(stmt).scalars().first()
+
+        if module is None:
+            await interaction.response.send_message("Module does not exist")
+            return
+        return module
 
     async def clear_codes_older_than_a_day(self):
         with Session(self.engine) as session:
@@ -148,13 +161,8 @@ class MainCog(commands.Cog):
         :return:
         """
 
-        stmt = select(Module).where(Module.module_code == module_code)
+        module = await self.get_module(module_code, interaction)
         session = Session(self.engine)
-        module = session.execute(stmt).scalars().first()
-
-        if module is None:
-            await interaction.response.send_message("Module does not exist")
-            return
 
         # Send a button to get Seminar/Lecture
         view = None
@@ -193,13 +201,8 @@ class MainCog(commands.Cog):
             The module code to list seminars for
         :return:
         """
-        stmt = select(Module).where(Module.module_code == module_code)
+        module = await self.get_module(module_code, interaction)
         session = Session(self.engine)
-        module = session.execute(stmt).scalars().first()
-
-        if module is None:
-            await interaction.response.send_message("Module does not exist")
-            return
 
         stmt = select(Seminar).where(Seminar.module_id == module.id)
         seminars = session.execute(stmt).scalars().all()
@@ -221,13 +224,8 @@ class MainCog(commands.Cog):
             The module code to list lectures for
         :return:
         """
-        stmt = select(Module).where(Module.module_code == module_code)
+        module = await self.get_module(module_code, interaction)
         session = Session(self.engine)
-        module = session.execute(stmt).scalars().first()
-
-        if module is None:
-            await interaction.response.send_message("Module does not exist")
-            return
 
         stmt = select(Lecture).where(Lecture.module_id == module.id)
         lectures = session.execute(stmt).scalars().all()
@@ -272,13 +270,7 @@ class MainCog(commands.Cog):
             The module code, I.E COMP38200
         :return:
         """
-        stmt = select(Module).where(Module.module_code == module_code)
-        session = Session(self.engine)
-        module = session.execute(stmt).scalars().first()
-
-        if module is None:
-            await interaction.response.send_message("Module does not exist")
-            return
+        module = await self.get_module(module_code, interaction)
 
         with Session(self.engine) as session:
             obj_seminar = Seminar(name=name, module_id=module.id)
@@ -301,13 +293,7 @@ class MainCog(commands.Cog):
             The module code, I.E COMP38200
         :return:
         """
-        stmt = select(Module).where(Module.module_code == module_code)
-        session = Session(self.engine)
-        module = session.execute(stmt).scalars().first()
-
-        if module is None:
-            await interaction.response.send_message("Module does not exist")
-            return
+        module = await self.get_module(module_code, interaction)
 
         with Session(self.engine) as session:
             obj_lecture = Lecture(name=name, module_id=module.id)
