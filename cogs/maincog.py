@@ -86,7 +86,6 @@ class MainCog(commands.Cog):
         codes = session.execute(stmt).scalars().all()
         embed = nextcord.Embed(title="Attendance Codes", description="List of all attendance codes", color=0x00ff00)
         for code in codes:
-            module = session.execute(select(Module).where(Module.id == code.module_id)).scalars().first()
             lecture_seminar = None
             if code.lecture_id is not None:
                 lecture_seminar = session.execute(select(Lecture).where(Lecture.id == code.lecture_id)).scalars().first()
